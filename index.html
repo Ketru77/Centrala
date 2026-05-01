@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moje Centrála</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans flex flex-col h-screen">
+
+    <!-- Horní lišta -->
+    <header class="bg-white shadow p-4 text-center">
+        <h1 class="text-2xl font-bold text-blue-600">Moje Centrála</h1>
+    </header>
+
+    <!-- Přepínání sekcí -->
+    <div class="flex justify-center bg-white border-b">
+        <button onclick="ukazSekci('gmail')" id="btn-gmail" class="px-6 py-3 font-bold text-blue-600 border-b-2 border-blue-600">GMAIL</button>
+        <button onclick="ukazSekci('kalendar')" id="btn-kalendar" class="px-6 py-3 font-bold text-gray-500">KALENDÁŘ</button>
+    </div>
+
+    <!-- Hlavní obsah -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8">
+        
+        <!-- Sekce Gmail -->
+        <div id="sekce-gmail" class="block">
+            <h2 class="text-xl mb-4 font-semibold text-gray-700">Moje e-maily</h2>
+            <div class="bg-white p-4 rounded-lg shadow mb-3 border-l-4 border-blue-500">
+                <p class="font-bold">Ukázkový odesílatel</p>
+                <p class="text-gray-600">Tady se brzy objeví tvé skutečné e-maily z Googlu.</p>
+            </div>
+        </div>
+
+        <!-- Sekce Kalendář -->
+        <div id="sekce-kalendar" class="hidden">
+            <h2 class="text-xl mb-4 font-semibold text-gray-700">Můj kalendář</h2>
+            <div class="bg-white p-10 rounded-lg shadow text-center border-2 border-dashed border-gray-300">
+                <p class="text-gray-500">Zde se načte tvůj Google kalendář.</p>
+            </div>
+        </div>
+
+        <!-- Ukazatel hlasu -->
+        <div id="text-hlasu" class="mt-6 p-4 bg-blue-100 text-blue-800 rounded-lg hidden italic"></div>
+
+    </main>
+
+    <!-- Hlasové ovládání -->
+    <footer class="bg-white p-4 border-t flex justify-center">
+        <button id="btn-hlas" onclick="spustHlas()" class="bg-blue-600 text-white font-bold py-4 px-8 rounded-full shadow-lg transition transform hover:scale-105">
+            🎤 PŘIDAT HLASEM
+        </button>
+    </footer>
+
+    <!-- Logika aplikace -->
+    <script>
+        // Přepínání záložek
+        function ukazSekci(sekce) {
+            document.getElementById('sekce-gmail').classList.add('hidden');
+            document.getElementById('sekce-kalendar').classList.add('hidden');
+            document.getElementById('btn-gmail').className = "px-6 py-3 font-bold text-gray-500";
+            document.getElementById('btn-kalendar').className = "px-6 py-3 font-bold text-gray-500";
+
+            document.getElementById('sekce-' + sekce).classList.remove('hidden');
+            document.getElementById('btn-' + sekce).className = "px-6 py-3 font-bold text-blue-600 border-b-2 border-blue-600";
+        }
+
+        // Hlasové ovládání
+        function spustHlas() {
+            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!Speech) {
+                alert("Tvůj prohlížeč neumí hlasové ovládání. Zkus Google Chrome.");
+                return;
+            }
+            
+            const btnHlas = document.getElementById('btn-hlas');
+            const textHlasu = document.getElementById('text-hlasu');
+            
+            const rec = new Speech();
+            rec.lang = 'cs-CZ';
+            
+            rec.onstart = () => {
+                btnHlas.innerHTML = "⚠️ POSLOUCHÁM...";
+                btnHlas.classList.replace('bg-blue-600', 'bg-red-500');
+            };
+            
+            rec.onresult = (e) => {
+                const prepsanyText = e.results[0][0].transcript;
+                textHlasu.innerHTML = `Slyšel jsem: "${prepsanyText}" <br><span class='text-sm text-gray-500'>(Brzy tohle pošleme do kalendáře)</span>`;
+                textHlasu.classList.remove('hidden');
+            };
+            
+            rec.onend = () => {
+                btnHlas.innerHTML = "🎤 PŘIDAT HLASEM";
+                btnHlas.classList.replace('bg-red-500', 'bg-blue-600');
+            };
+            
+            rec.start();
+        }
+    </script>
+</body>
+</html>
