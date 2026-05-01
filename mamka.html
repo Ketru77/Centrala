@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masáže - Zenový Kalendář</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), 
+                        url('https://images.unsplash.com/photo-1544161515-4af6b1d462c2?auto=format&fit=crop&q=80&w=1000');
+            background-size: cover;
+            background-attachment: fixed;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .zen-icon { animation: float 4s ease-in-out infinite; }
+    </style>
+</head>
+<body class="min-h-screen p-4 pb-24">
+
+    <!-- Horní Info Panel -->
+    <div class="glass p-6 mb-6 text-center shadow-xl">
+        <h1 class="text-2xl font-serif text-emerald-800 mb-4 italic">Klidné masáže</h1>
+        
+        <div class="grid grid-cols-2 gap-4">
+            <div class="p-3 bg-emerald-50 rounded-xl">
+                <p class="text-xs text-emerald-600 uppercase font-bold">Tento týden</p>
+                <p id="count-this" class="text-2xl font-bold text-emerald-900">12</p>
+                <p class="text-[10px] text-gray-500">klientů</p>
+            </div>
+            <div class="p-3 bg-teal-50 rounded-xl">
+                <p class="text-xs text-teal-600 uppercase font-bold">Příští týden</p>
+                <p id="count-next" class="text-2xl font-bold text-teal-900">8</p>
+                <p class="text-[10px] text-gray-500">objednávek</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sekce Poznámky -->
+    <div class="glass p-5 mb-6 shadow-lg">
+        <h2 class="text-emerald-800 font-bold mb-3 flex items-center">
+            <span class="mr-2 italic">📝 Rychlé poznámky</span>
+        </h2>
+        <div id="notes-list" class="space-y-2 text-sm text-gray-700">
+            <p class="italic text-gray-400">Zatím žádné poznámky...</p>
+        </div>
+    </div>
+
+    <!-- Hlasový výstup (co aplikace slyší) -->
+    <div id="voice-display" class="hidden glass p-4 mb-6 border-l-4 border-emerald-500 italic text-emerald-900 animate-pulse">
+        Slyším...
+    </div>
+
+    <!-- Spodní Ovládání -->
+    <div class="fixed bottom-6 left-0 right-0 px-6 flex justify-center gap-4">
+        <button onclick="startVoice('event')" class="bg-emerald-600 text-white w-full py-4 rounded-2xl shadow-2xl font-bold flex flex-col items-center">
+            <span>🎤 NOVÝ KLIENT</span>
+            <span class="text-[10px] font-normal opacity-80">(Kalendář)</span>
+        </button>
+        <button onclick="startVoice('note')" class="bg-teal-600 text-white w-full py-4 rounded-2xl shadow-2xl font-bold flex flex-col items-center">
+            <span>🎤 POZNÁMKA</span>
+            <span class="text-[10px] font-normal opacity-80">(Papírek)</span>
+        </button>
+    </div>
+
+    <script>
+        const voiceDisplay = document.getElementById('voice-display');
+        const notesList = document.getElementById('notes-list');
+
+        function startVoice(type) {
+            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!Speech) return alert("Prohlížeč nepodporuje hlas.");
+
+            const rec = new Speech();
+            rec.lang = 'cs-CZ';
+
+            rec.onstart = () => {
+                voiceDisplay.innerText = "Poslouchám tě, mluv...";
+                voiceDisplay.classList.remove('hidden');
+            };
+
+            rec.onresult = (e) => {
+                const text = e.results[0][0].transcript;
+                voiceDisplay.classList.remove('animate-pulse');
+                
+                if (type === 'note') {
+                    addNote(text);
+                } else {
+                    voiceDisplay.innerText = "Ukládám do kalendáře: " + text;
+                    // Tady by se napojilo to Google API z minula
+                }
+            };
+
+            rec.onend = () => {
+                setTimeout(() => {
+                    voiceDisplay.classList.add('hidden');
+                    voiceDisplay.classList.add('animate-pulse');
+                }, 3000);
+            };
+
+            rec.start();
+        }
+
+        function addNote(text) {
+            if (notesList.querySelector('p.italic')) notesList.innerHTML = '';
+            const item = document.createElement('div');
+            item.className = "p-2 border-b border-emerald-100 flex justify-between items-center";
+            item.innerHTML = `<span>${text}</span><button onclick="this.parentElement.remove()" class="text-red-300">✕</button>`;
+            notesList.prepend(item);
+        }
+    </script>
+</body>
+</html>
